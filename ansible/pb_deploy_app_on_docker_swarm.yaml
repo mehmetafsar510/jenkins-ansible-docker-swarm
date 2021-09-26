@@ -24,11 +24,19 @@
       group: ec2-user
       mode: '0775'
 
+  - name: Copy bash script to grand master
+    copy:
+      src: "{{ workspace }}/deploy.sh"
+      dest: /home/ec2-user/deploy.sh
+      owner: ec2-user
+      group: ec2-user
+      mode: '0775'
+
   - name: get login credentials for ecr
     shell: "export PATH=$PATH:/usr/local/bin/ && aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_registry }}"
 
   - name: deploy the app stack on swarm
-    shell: "docker stack deploy --with-registry-auth -c /home/ec2-user/docker-compose.yml {{ app_name }}"
+    shell: "bash /home/ec2-user/deploy.sh"
     register: output
 
   - debug: msg="{{ output.stdout }}"

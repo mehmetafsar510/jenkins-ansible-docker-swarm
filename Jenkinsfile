@@ -11,7 +11,7 @@ pipeline {
         ANSIBLE_HOST_KEY_CHECKING="False"
         APP_REPO_NAME="clarusway-repo/phonebook-app-qa" 
         AWS_REGION="us-east-1" 
-        ECR_REGISTRY="646075469151.dkr.ecr.us-east-1.amazonaws.com" 
+        ECR_REGISTRY="717860527362.dkr.ecr.us-east-1.amazonaws.com" 
     }
     stages {
         stage('get-keypair'){
