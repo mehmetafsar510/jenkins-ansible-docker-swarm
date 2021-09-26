@@ -1,0 +1,34 @@
+---
+- hosts: role_grand_master
+  tasks:
+  - name: Copy docker compose file to grand master
+    copy:
+      src: "{{ workspace }}/docker-compose.yml"
+      dest: /home/ec2-user/docker-compose.yml
+
+  - name: Copy .env file to grand master
+    copy:
+      src: "{{ workspace }}/.env"
+      dest: /home/ec2-user/.env
+
+  - name: Copy init.sql file to grand master
+    copy:
+      src: "{{ workspace }}/init.sql"
+      dest: /home/ec2-user/init.sql
+
+  - name: Copy database folder to grand master
+    copy:
+      src: "{{ workspace }}/database/"
+      dest: /home/ec2-user/database/
+      owner: ec2-user
+      group: ec2-user
+      mode: '0775'
+
+  - name: get login credentials for ecr
+    shell: "export PATH=$PATH:/usr/local/bin/ && aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_registry }}"
+
+  - name: deploy the app stack on swarm
+    shell: "docker stack deploy --with-registry-auth -c /home/ec2-user/docker-compose.yml {{ app_name }}"
+    register: output
+
+  - debug: msg="{{ output.stdout }}"
