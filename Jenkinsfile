@@ -7,7 +7,7 @@ pipeline {
         AWS_REGION="us-east-1"
         CFN_KEYPAIR="the-doctor"
         CFN_TEMPLATE="docker-swarm-infrastructure-cfn-template.yml"
-        ANSIBLE_PRIVATE_KEY_FILE="${WORKSPACE}/.ssh/${CFN_KEYPAIR}"
+        ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem"
         ANSIBLE_HOST_KEY_CHECKING="False"
         APP_REPO_NAME="clarusway-repo/phonebook-app-qa" 
         AWS_REGION="us-east-1" 
@@ -18,7 +18,7 @@ pipeline {
             agent any
             steps{
                 sh '''
-                    if [ -f "${CFN_KEYPAIR}" ]
+                    if [ -f "${CFN_KEYPAIR}.pem" ]
                     then 
                         echo "file exists..."
                     else
@@ -26,13 +26,14 @@ pipeline {
                           --region ${AWS_REGION} \
                           --key-name ${CFN_KEYPAIR} \
                           --query KeyMaterial \
-                          --output text > ${CFN_KEYPAIR}
+                          --output text > ${CFN_KEYPAIR}.pem
 
-                        chmod 400 ${CFN_KEYPAIR}
+                        chmod 400 ${CFN_KEYPAIR}.pem
                         
-                        ssh-keygen -y -f ${CFN_KEYPAIR} >> ${CFN_KEYPAIR}.pub
-                        sudo mkdir -p ${WORKSPACE}/.ssh
-                        sudo mv -f ${CFN_KEYPAIR} ${WORKSPACE}/.ssh
+                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
+                        cp -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
+                        chown jenkins:jenkins ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem
+
                     fi
                 '''                
             }
