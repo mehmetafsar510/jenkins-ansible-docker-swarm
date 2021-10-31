@@ -7,7 +7,7 @@ pipeline {
         MYSQL_DATABASE_DB = "phonebook"
         MYSQL_DATABASE_PORT = 3306
         APP_NAME="phonebook"
-        APP_STACK_NAME="$APP_NAME-App-QA-${BUILD_NUMBER}"
+        APP_STACK_NAME="$APP_NAME-App-QA-5"
         CFN_KEYPAIR="the-doctor"
         CFN_TEMPLATE="docker-swarm-infrastructure-cfn-template.yml"
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem"
@@ -170,8 +170,7 @@ pipeline {
                     MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=grand-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text )  || true
                     if [ "$MasterIp" == '' ]
                     then
-                        aws cloudformation create-stack 
-                          --stack-name ${APP_STACK_NAME} \
+                        aws cloudformation create-stack --stack-name ${APP_STACK_NAME} \
                           --capabilities CAPABILITY_IAM \
                           --template-body file://${CFN_TEMPLATE} \
                           --region ${AWS_REGION} --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR} 
