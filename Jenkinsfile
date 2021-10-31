@@ -8,7 +8,6 @@ pipeline {
         MYSQL_DATABASE_PORT = 3306
         APP_NAME="phonebook"
         APP_STACK_NAME="$APP_NAME-App-QA-${BUILD_NUMBER}"
-        AWS_REGION="us-east-1"
         CFN_KEYPAIR="the-doctor"
         CFN_TEMPLATE="docker-swarm-infrastructure-cfn-template.yml"
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem"
