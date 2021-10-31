@@ -1,5 +1,5 @@
 pipeline {
-    agent { label "master" }
+    agent any
     environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         APP_NAME="phonebook"
@@ -43,7 +43,7 @@ pipeline {
             steps{
                 echo 'creating ECR Repository'
                 sh '''
-                    RepoArn=$(aws ecr describe-repositories | grep ${APP_REPO} |cut -d '"' -f 4| head -n 1 )  || true
+                    RepoArn=$(aws ecr describe-repositories --region ${AWS_REGION} | grep ${APP_REPO} |cut -d '"' -f 4| head -n 1 )  || true
                     if [ "$RepoArn" == '' ]
                     then
                         aws ecr create-repository \
@@ -122,9 +122,8 @@ pipeline {
         }
     }
     post {
-        failure {
-            echo 'Tear down the Docker Swarm infrastructure using AWS CLI'
-            sh "aws cloudformation delete-stack --region ${AWS_REGION} --stack-name ${APP_STACK_NAME}"
+        success {
+            echo "You are Greattt...You can visit https://$FQDN"
         }
     }
 }
