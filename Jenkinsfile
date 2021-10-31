@@ -184,7 +184,7 @@ pipeline {
                     }
                     while(true) {
                         try{
-                            sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${WORKSPACE}/.ssh/${CFN_KEYPAIR} ec2-user@${GRAND_MASTER_PUBLIC_IP} hostname"
+                            sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ec2-user@${GRAND_MASTER_PUBLIC_IP} hostname"
                             echo "Docker Grand Master is reachable with SSH."
                             break
                         }
