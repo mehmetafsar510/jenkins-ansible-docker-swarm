@@ -199,18 +199,20 @@ pipeline {
 
         stage('Create Docker Swarm for QA Environment') {
             steps {
-                echo "Setup Docker Swarm for QA Environment for ${APP_NAME} App"
+                echo "Setup Docker Swarm for QA Environment for ${APP_NAME} App" 
                 echo "Update dynamic environment"
                 sh "sed -i 's/APP_STACK_NAME/${APP_STACK_NAME}/' dynamic_inventory_aws_ec2.yaml"
                 sh "sed -i 's/{{key_pair}}/${CFN_KEYPAIR}.pem/' ansible.cfg"
-                echo "Swarm Setup for all nodes (instances)"
-                sh "ansible-playbook  -b ./ansible/pb_setup_for_all_docker_swarm_instances.yaml"
-                echo "Swarm Setup for Grand Master node"
-                sh "ansible-playbook  -b ./ansible/pb_initialize_docker_swarm.yaml"
-                echo "Swarm Setup for Other Managers nodes"
-                sh "ansible-playbook  -b ./ansible/pb_join_docker_swarm_managers.yaml"
-                echo "Swarm Setup for Workers nodes"
-                sh "ansible-playbook -b ./ansible/pb_join_docker_swarm_workers.yaml"
+                sh '''
+                    VizArn=$(curl -s --connect-timeout 5 ${GRAND_MASTER_PUBLIC_IP}:8088 )  || true
+                    if [ "$VizArn" == '' ]
+                    then
+                        ansible-playbook  -b ./ansible/pb_setup_for_all_docker_swarm_instances.yaml
+                        ansible-playbook  -b ./ansible/pb_initialize_docker_swarm.yaml
+                        ansible-playbook  -b ./ansible/pb_join_docker_swarm_managers.yaml
+                        ansible-playbook -b ./ansible/pb_join_docker_swarm_workers.yaml     
+                    fi
+                '''
                 sh 'ansible-playbook -b --extra-vars "workspace=${WORKSPACE} app_name=${APP_NAME} aws_region=${AWS_REGION} ecr_registry=${ECR_REGISTRY}" ./ansible/pb_deploy_app_on_docker_swarm.yaml'
             }
         }
