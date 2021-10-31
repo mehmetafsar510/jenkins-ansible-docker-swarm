@@ -185,6 +185,7 @@ pipeline {
                         try{
                             sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ec2-user@${GRAND_MASTER_PUBLIC_IP} hostname"
                             echo "Docker Grand Master is reachable with SSH."
+                            sleep(10)
                             break
                         }
                         catch(Exception){
