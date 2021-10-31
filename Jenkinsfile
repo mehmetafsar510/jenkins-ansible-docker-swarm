@@ -2,6 +2,10 @@ pipeline {
     agent any
     environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
+        MYSQL_DATABASE_PASSWORD = "Clarusway"
+        MYSQL_DATABASE_USER = "admin"
+        MYSQL_DATABASE_DB = "phonebook"
+        MYSQL_DATABASE_PORT = 3306
         APP_NAME="phonebook"
         APP_STACK_NAME="$APP_NAME-App-QA-${BUILD_NUMBER}"
         AWS_REGION="us-east-1"
@@ -14,6 +18,95 @@ pipeline {
         ECR_REGISTRY="717860527362.dkr.ecr.us-east-1.amazonaws.com" 
     }
     stages {
+        stage("compile"){
+           agent{
+               docker{
+                   image 'python:alpine'
+               }
+           }
+           steps{
+               withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh 'pip install -r requirements.txt'
+                    sh 'python -m py_compile src/*.py'
+                    stash(name: 'compilation_result', includes: 'src/*.py*')
+                }
+           }
+        }
+
+        stage('creating RDS for test stage'){
+            agent any
+            steps{
+                echo 'creating RDS for test stage'
+                sh '''
+                    RDS=$(aws rds describe-db-instances --region ${AWS_REGION}  | grep mysql-instance |cut -d '"' -f 4| head -n 1)  || true
+                    if [ "$RDS" == '' ]
+                    then
+                        aws rds create-db-instance \
+                          --region ${AWS_REGION} \
+                          --db-instance-identifier mysql-instance \
+                          --db-instance-class db.t2.micro \
+                          --engine mysql \
+                          --db-name ${MYSQL_DATABASE_DB} \
+                          --master-username ${MYSQL_DATABASE_USER} \
+                          --master-user-password ${MYSQL_DATABASE_PASSWORD} \
+                          --allocated-storage 20 \
+                          --tags 'Key=Name,Value=masterdb'
+                          
+                    fi
+                '''
+            script {
+                while(true) {
+                        
+                        echo "RDS is not UP and running yet. Will try to reach again after 10 seconds..."
+                        sleep(10)
+
+                        endpoint = sh(script:'aws rds describe-db-instances --region ${AWS_REGION} --db-instance-identifier mysql-instance --query DBInstances[*].Endpoint.Address --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+
+                        if (endpoint.length() >= 7) {
+                            echo "My Database Endpoint Address Found: $endpoint"
+                            env.MYSQL_DATABASE_HOST = "$endpoint"
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('create phonebook table in rds'){
+            agent any
+            steps{
+                sh "mysql -u ${MYSQL_DATABASE_USER} -h ${MYSQL_DATABASE_HOST} -p${MYSQL_DATABASE_PASSWORD} < phonebook.sql"
+            }
+        } 
+       
+        stage('test'){
+            agent {
+                docker {
+                    image 'python:alpine'
+                }
+            }
+            steps {
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh 'python -m pytest -v --junit-xml results.xml src/appTest.py'
+                }
+            }
+            post {
+                always {
+                    junit 'results.xml'
+                }
+            }
+        }  
+
+        stage('creating .env for docker-compose'){
+            agent any
+            steps{
+                script {
+                    echo 'creating .env for docker-compose'
+                    sh "cd ${WORKSPACE}"
+                    writeFile file: '.env', text: "ECR_REGISTRY=${ECR_REGISTRY}\nAPP_REPO_NAME=${APP_REPO}:latest"
+                }
+            }
+        }
         stage('get-keypair'){
             agent any
             steps{
