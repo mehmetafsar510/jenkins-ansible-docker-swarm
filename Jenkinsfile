@@ -166,8 +166,19 @@ pipeline {
         stage('Create QA Environment Infrastructure') {
             steps {
                 echo 'Creating Infrastructure for QA Environment with Cloudfomation'
-                sh "aws cloudformation create-stack --region ${AWS_REGION} --stack-name ${APP_STACK_NAME} --capabilities CAPABILITY_IAM --template-body file://${CFN_TEMPLATE} --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR}"
-
+                sh '''
+                    MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=grand-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text )  || true
+                    if [ "$MasterIp" == '' ]
+                    then
+                        aws cloudformation create-stack 
+                          --region ${AWS_REGION} \ 
+                          --stack-name ${APP_STACK_NAME} \
+                          --capabilities CAPABILITY_IAM \
+                          --template-body file://${CFN_TEMPLATE} \
+                          --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR}
+                        
+                    fi
+                '''
                 script {
                     while(true) {
                         echo "Docker Grand Master is not UP and running yet. Will try to reach again after 10 seconds..."
@@ -201,6 +212,7 @@ pipeline {
                 echo "Setup Docker Swarm for QA Environment for ${APP_NAME} App"
                 echo "Update dynamic environment"
                 sh "sed -i 's/APP_STACK_NAME/${APP_STACK_NAME}/' dynamic_inventory_aws_ec2.yaml"
+                sh "sed -i 's/{{key_pair}}/${CFN_KEYPAIR}.pem/' ansible.cfg"
                 echo "Swarm Setup for all nodes (instances)"
                 sh "ansible-playbook  -b ./ansible/pb_setup_for_all_docker_swarm_instances.yaml"
                 echo "Swarm Setup for Grand Master node"
