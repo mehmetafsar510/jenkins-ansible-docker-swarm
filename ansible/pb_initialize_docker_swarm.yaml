@@ -2,7 +2,7 @@
 - hosts: role_grand_master
   tasks:
   - name: leave docker swarm
-    shell: docker swarm leave
+    shell: docker swarm leave --force
   - name: initialize docker swarm
     shell: docker swarm init
   - name: install git
