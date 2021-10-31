@@ -36,7 +36,7 @@
     shell: "export PATH=$PATH:/usr/local/bin/ && aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_registry }}"
 
   - name: deploy the app stack on swarm
-    shell: "bash /home/ec2-user/deploy.sh"
+    shell: "docker stack deploy --with-registry-auth -c /home/ec2-user/docker-compose.yml {{ app_name }} "
     register: output
 
   - debug: msg="{{ output.stdout }}"
