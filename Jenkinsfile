@@ -171,11 +171,12 @@ pipeline {
                     if [ "$MasterIp" == '' ]
                     then
                         aws cloudformation create-stack 
-                          --region ${AWS_REGION} \ 
+                          --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR} \ 
                           --stack-name ${APP_STACK_NAME} \
                           --capabilities CAPABILITY_IAM \
                           --template-body file://${CFN_TEMPLATE} \
-                          --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR}
+                          --region ${AWS_REGION}
+                          
                         
                     fi
                 '''
