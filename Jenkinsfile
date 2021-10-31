@@ -102,7 +102,7 @@ pipeline {
                 script {
                     echo 'creating .env for docker-compose'
                     sh "cd ${WORKSPACE}"
-                    writeFile file: '.env', text: "ECR_REGISTRY=${ECR_REGISTRY}\nAPP_REPO_NAME=${APP_REPO}:latest"
+                    writeFile file: '.env', text: "ECR_REGISTRY=${ECR_REGISTRY}\nAPP_REPO_NAME=${APP_REPO_NAME}:latest"
                 }
             }
         }
