@@ -160,7 +160,7 @@ pipeline {
                 echo 'Creating Infrastructure for QA Environment with Cloudfomation'
                 sh '''
                     MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=grand-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text)  || true
-                    if [ "$MasterIp" == 'None' ]
+                    if [ "$MasterIp" == '' ]
                     then
                         aws cloudformation create-stack --stack-name ${APP_STACK_NAME} \
                           --capabilities CAPABILITY_IAM \
