@@ -11,7 +11,7 @@ pipeline {
         CFN_KEYPAIR="the-doctor"
         CFN_TEMPLATE="docker-swarm-infrastructure-cfn-template.yml"
         DOMAIN_NAME = "mehmetafsar.net"
-        FQDN = "phonebook.mehmetafsar.net"
+        FQDN = "phone.mehmetafsar.net"
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem"
         ANSIBLE_HOST_KEY_CHECKING="False"
         APP_REPO_NAME="clarusway-repo/phonebook-app-qa" 
