@@ -28,7 +28,7 @@ services:
         delay: 5s
         order: start-first
     ports:
-      - "80:80"
+      - "8000:8000"
     networks:
       - clarusnet
 

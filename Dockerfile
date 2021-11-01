@@ -8,6 +8,6 @@ ENV MYSQL_DATABASE_DB phonebook
 ENV MYSQL_DATABASE_PORT 3306
 
 RUN pip install -r requirements.txt
-EXPOSE 80
+EXPOSE 8000
 ENTRYPOINT [ "python" ]
 CMD ["src/app.py"]
