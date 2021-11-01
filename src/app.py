@@ -18,6 +18,12 @@ connection = mysql.connect()
 connection.autocommit(True)
 cursor = connection.cursor()
 
+def insert_mock_name(name, number):
+    return 'Person ' + name.strip().title() + ' added to Phonebook successfully'
+
+# Write a function named `insert_person` which inserts person into the phonebook table in the db,
+# and returns text info about result of the operation
+
 # Write a function named `find_persons` which finds persons' record using the keyword from the phonebook table in the db,
 # and returns result as list of dictionary 
 # `[{'id': 1, 'name':'XXXX', 'number': 'XXXXXX'}]`.
