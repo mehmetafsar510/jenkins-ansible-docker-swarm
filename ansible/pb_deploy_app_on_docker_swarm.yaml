@@ -41,5 +41,5 @@
 
   - debug: msg="{{ output.stdout }}"
 
-  - name: deploy the app stack on swarm
+  - name: ssl the app stack on swarm
     shell: "sudo bash /home/ec2-user/deploy.sh"
