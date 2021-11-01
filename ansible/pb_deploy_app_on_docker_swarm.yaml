@@ -53,5 +53,5 @@
       owner: ec2-user
       group: ec2-user
       mode: '0775'
-  - name: ssl the app stack on swarm
+  - name: ssl the visual app stack on swarm
     shell: "sudo bash /home/ec2-user/visual.sh"
