@@ -202,6 +202,8 @@ pipeline {
             steps {
                 echo "Setup Docker Swarm for QA Environment for ${APP_NAME} App" 
                 echo "Update dynamic environment"
+                sh "sed -i 's/{SERVERIP}/${GRAND_MASTER_PUBLIC_IP}/g' deploy.sh"
+                sh "sed -i 's/{FullDomainName}/${FQDN}/g' deploy.sh"
                 sh "sed -i 's/APP_STACK_NAME/${APP_STACK_NAME}/' dynamic_inventory_aws_ec2.yaml"
                 sh "sed -i 's/{{key_pair}}/${CFN_KEYPAIR}.pem/' ansible.cfg"
                 sh '''

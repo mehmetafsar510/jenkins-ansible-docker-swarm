@@ -9,11 +9,11 @@ sh -c "cat >> /etc/nginx/conf.d/jenkins.conf<< 'EOF'
 # Nginx Proxy configuration
 #################################################
 upstream jenkins {
-  server {JENKINSERVERIP}:8000 fail_timeout=0;
+  server {SERVERIP}:8000 fail_timeout=0;
 }
 server {
   listen 80;
-  server_name phonebook.mehmetafsar.net;
+  server_name {FullDomainName};
 
   location / {
     proxy_set_header        Host $host:$server_port;
@@ -28,13 +28,11 @@ server {
   }
 }             
 EOF"
-sed -i "s/{JENKINSERVERIP}/${JENKINSERVERIP}/g" /etc/nginx/conf.d/jenkins.conf
-sed -i "s/{FullDomainName}/${FullDomainName}/g" /etc/nginx/conf.d/jenkins.conf
 
 systemctl enable --now nginx
 systemctl restart nginx
-export DOMAIN="${FullDomainName}"
-export ALERTS_EMAIL="${OperatorEMail}"
+export DOMAIN="{FullDomainName}"
+export ALERTS_EMAIL="drmehmet510@gmail.com"
 certbot --nginx --redirect -d $DOMAIN --preferred-challenges http --agree-tos -n -m $ALERTS_EMAIL --keep-until-expiring
 crontab -l > /tmp/mycrontab
 echo '0 12 * * * /usr/bin/certbot renew --quiet' >> /tmp/mycrontab
