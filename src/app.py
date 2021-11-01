@@ -1,7 +1,6 @@
 # Import Flask modules
 from flask import Flask, request, render_template
 from flaskext.mysql import MySQL
-import os
 
 # Create an object named app
 app = Flask(__name__)
@@ -13,27 +12,25 @@ app.config['MYSQL_DATABASE_USER'] = os.getenv('MYSQL_DATABASE_USER')  # 'admin'
 app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')  # "phonebook"
 app.config['MYSQL_DATABASE_PORT'] = int(os.getenv('MYSQL_DATABASE_PORT'))  # 3306
 mysql = MySQL()
-mysql.init_app(app) 
+mysql.init_app(app)
 connection = mysql.connect()
 connection.autocommit(True)
 cursor = connection.cursor()
 
-# Write a function named `init_todo_db` which initializes the todo db
-# Create P table within sqlite db.
-def init_phonebook_db():
-    phonebook_table = """
-    CREATE TABLE IF NOT EXISTS phonebook.phonebook(
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    number VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+# Write a function named `find_persons` which finds persons' record using the keyword from the phonebook table in the db,
+# and returns result as list of dictionary 
+# `[{'id': 1, 'name':'XXXX', 'number': 'XXXXXX'}]`.
+def find_persons(keyword):
+    query = f"""
+    SELECT * FROM phonebook WHERE name like '%{keyword.strip().lower()}%';
     """
-    cursor.execute(phonebook_table)
+    cursor.execute(query)
+    result = cursor.fetchall()
+    persons =[{'id':row[0], 'name':row[1].strip().title(), 'number':row[2]} for row in result]
+    if len(persons) == 0:
+        persons = [{'name':'No Result', 'number':'No Result'}]
+    return persons
 
-
-def insert_mock_name(name, number):
-    return 'Person ' + name.strip().title() + ' added to Phonebook successfully'
 
 # Write a function named `insert_person` which inserts person into the phonebook table in the db,
 # and returns text info about result of the operation
@@ -41,7 +38,6 @@ def insert_person(name, number):
     query = f"""
     SELECT * FROM phonebook WHERE name like '{name.strip().lower()}';
     """
-
     cursor.execute(query)
     row = cursor.fetchone()
     if row is not None:
@@ -93,6 +89,18 @@ def delete_person(name):
     """
     cursor.execute(delete)
     return f'Phone record of {name.strip().title()} is deleted from the phonebook successfully'
+
+# Write a function named `find_records` which finds phone records by keyword using `GET` and `POST` methods,
+# using template files named `index.html` given under `templates` folder
+# and assign to the static route of ('/')
+@app.route('/', methods=['GET', 'POST'])
+def find_records():
+    if request.method == 'POST':
+        keyword = request.form['username']
+        persons = find_persons(keyword)
+        return render_template('index.html', persons=persons, keyword=keyword, show_result=True, developer_name='Mehmet')
+    else:
+        return render_template('index.html', show_result=False, developer_name='Mehmet')
 
 
 # Write a function named `add_record` which inserts new record to the database using `GET` and `POST` methods,
@@ -152,13 +160,7 @@ def delete_record():
     else:
         return render_template('delete.html', show_result=False, not_valid=False, developer_name='Mehmet')
 
-@app.route('/', methods=['GET', 'POST'])
-def find_records():
-    return render_template('index.html', show_result=False, developer_name='Mehmet')
-
 
 # Add a statement to run the Flask application which can be reached from any host on port 80.
 if __name__== '__main__':
-    init_phonebook_db()
-    #app.run(debug=True)
-    app.run(host='0.0.0.0', port=80) 
+    app.run(host='0.0.0.0', port=80)
