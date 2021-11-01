@@ -1,4 +1,4 @@
-CREATE TABLE phonebook.phonebook(
+CREATE TABLE IF NOT EXISTS phonebook.phonebook(
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     number VARCHAR(100) NOT NULL,
